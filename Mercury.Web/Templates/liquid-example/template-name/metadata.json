@@ -1,3 +1,7 @@
 ﻿{
-  "subject": "Example email subject"
+  "subject": "Example email subject",
+  "from": {
+    "address": "examle@gmail.com",
+    "displayName":  "Example"
+  }
 }
