@@ -179,6 +179,8 @@ Returns 200 OK.
 ## Future Plans
 
 * Add queue consumer(s) (e.g. RabbitMQ);
+* Add caching (resources, templates);
+* Load/performance testing;
 * Add some more resource loaders/emailers/template processors;
 * Add ability to send attachments;
     
