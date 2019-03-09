@@ -46,7 +46,7 @@ namespace Mercury.ResourceLoaders
                 throw new ResourceNotFoundException(path, Enums.ResourceLoaderTypes.AzureBlob);
             }
 
-            using (var stream = await blobReference.OpenReadAsync().ConfigureAwait(false))
+            using (var stream = await blobReference.OpenReadAsync())
             using (var reader = new StreamReader(stream))
             {
                 return await reader.ReadToEndAsync();
