@@ -5,6 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Settings.StyleCop" />
+    <None Remove="StyleCop.Cache" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Mercury.Abstraction\Mercury.Abstraction.csproj" />
   </ItemGroup>
 
