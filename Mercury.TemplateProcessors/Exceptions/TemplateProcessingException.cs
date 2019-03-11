@@ -21,5 +21,16 @@ namespace Mercury.TemplateProcessors.Exceptions
         public IEnumerable<string> Errors { get; set; }
 
         public TemplateProcessorTypes TemplateProcessorType { get; set; }
+
+        public override string Message
+        {
+            get
+            {
+                return $@"{base.Message}.
+TemplateProcessor type: {TemplateProcessorType.ToString()}.
+Errors:
+{string.Join(Environment.NewLine, Errors)}";
+            }
+        }
     }
 }

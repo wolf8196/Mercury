@@ -2,13 +2,21 @@
 using System.Threading.Tasks;
 using Mercury.ResourceLoaders.Exceptions;
 using Mercury.TemplateProcessors.Exceptions;
+using Mercury.Validation;
 using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json;
+using Microsoft.Extensions.Logging;
 
 namespace Mercury.Web.Middleware
 {
     public class ExceptionHandlingMiddleware : IMiddleware
     {
+        private readonly ILogger<ExceptionHandlingMiddleware> logger;
+
+        public ExceptionHandlingMiddleware(ILogger<ExceptionHandlingMiddleware> logger)
+        {
+            this.logger = logger;
+        }
+
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
             try
@@ -17,55 +25,35 @@ namespace Mercury.Web.Middleware
             }
             catch (ResourceNotFoundException ex)
             {
-                await WriteResponse(
-                    context,
-                    ex,
-                    StatusCodes.Status404NotFound,
-                    new
-                    {
-                        ResourceLoaderType = ex.ResourceLoaderType.ToString(),
-                        ex.Path
-                    });
+                LogError(ex);
+                SetResponse(context, StatusCodes.Status404NotFound);
             }
             catch (TemplateProcessingException ex)
             {
-                await WriteResponse(
-                    context,
-                    ex,
-                    StatusCodes.Status400BadRequest,
-                    new
-                    {
-                        TemplateProcessorType = ex.TemplateProcessorType.ToString(),
-                        ex.Errors
-                    });
+                LogError(ex);
+                SetResponse(context, StatusCodes.Status400BadRequest);
+            }
+            catch (ModelValidationException ex)
+            {
+                LogError(ex);
+                SetResponse(context, StatusCodes.Status400BadRequest);
             }
             catch (Exception ex)
             {
-                await WriteResponse(context, ex, StatusCodes.Status500InternalServerError);
+                LogError(ex);
+                SetResponse(context, StatusCodes.Status500InternalServerError);
             }
         }
 
-        private Task WriteResponse(
-            HttpContext context,
-            Exception ex,
-            int statusCode,
-            object additionalData = null)
+        private void SetResponse(HttpContext context, int statusCode)
         {
             context.Response.Clear();
             context.Response.StatusCode = statusCode;
-            context.Response.ContentType = "application/json";
-            return context.Response.WriteAsync(
-                JsonConvert.SerializeObject(
-                    new
-                    {
-                        Type = ex.GetType().Name,
-                        ex.Message,
-                        Data = additionalData
-                    },
-                    new JsonSerializerSettings
-                    {
-                        NullValueHandling = NullValueHandling.Ignore
-                    }));
+        }
+
+        private void LogError(Exception ex)
+        {
+            logger.LogError(ex, "Mercury threw an exception");
         }
     }
 }

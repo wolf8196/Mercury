@@ -2,11 +2,11 @@
 Mercury - the messenger of the gods - a small and simple service, that takes templates, renders them, and sends emails to provided address(es).
 
 ## Prerequisites
-Rest api uses .Net Core 2.1;
+Rest api uses .Net Core 2.1.
 
-Core functionality projects use .Net Standart 2.0;
+Core functionality projects use .Net Standart 2.0.
 
-Service assumes that network is secure;
+Service assumes that network is secure.
 
 ## Usage
 
@@ -111,49 +111,22 @@ Sends email(s) based on provided parameters.
    `bccs: [string array]`
    
 * **Success Response**
-  * **Code:** 200
+  * **Code:** 200 OK
   
 * **Error Response**
   * **Code:** 404 NOT FOUND <br />
-    **Content:** 
-    ```json
-    {
-        "Type": "ResourceNotFoundException",
-        "Message": "Requested resource was not found",
-        "Data": {
-            "ResourceLoaderType": "<resourceLoaderTypeName>",
-            "Path": "<provided invalid path>"
-        }
-    }
-    ```
+    **Reason:** Requested resource was not found
 
   OR
 
   * **Code:** 400 BAD REQUEST <br />
-    **Content:** 
-    ```json
-    {
-        "Type": "TemplateProcessingException",
-        "Message": "Failed to process template",
-        "Data": {
-            "TemplateProcessorType": "<templateProcessorTypeName>",
-            "Errors": [
-                "<error items"
-            ]
-        }
-    }
-    ```
+    **Reason:** Failure during template processing or request parameter is invalid
     
   OR
 
   * **Code:** 500 INTERNAL SERVER ERROR <br />
-    **Content:** 
-    ```json
-    {
-        "Type": "<unexpectedExceptionType>",
-        "Message": "<unexpectedExceptionMessage>"
-    }
-    ```
+    **Reason:** Unexpected exception occured
+
 ### Healthcheck
 Returns 200 OK.
 * **URL**
@@ -165,17 +138,12 @@ Returns 200 OK.
   `GET`
    
 * **Success Response**
-  * **Code:** 200
+  * **Code:** 200 OK
   
 * **Error Response**
   * **Code:** 500 INTERNAL SERVER ERROR <br />
-    **Content:** 
-    ```json
-    {
-        "Type": "<unexpectedExceptionType>",
-        "Message": "<unexpectedExceptionMessage>"
-    }
-    ```
+    **Reason:** Unexpected exception occured
+
 ## Future Plans
 
 * Add queue consumer(s) (e.g. RabbitMQ);

@@ -17,5 +17,14 @@ namespace Mercury.Emailers.Exceptions
         }
 
         public EmailerTypes EmailerType { get; set; }
+
+        public override string Message
+        {
+            get
+            {
+                return $@"{base.Message}.
+Emailer type: {EmailerType.ToString()}";
+            }
+        }
     }
 }

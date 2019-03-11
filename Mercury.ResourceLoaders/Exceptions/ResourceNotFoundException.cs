@@ -20,5 +20,15 @@ namespace Mercury.ResourceLoaders.Exceptions
         public string Path { get; set; }
 
         public ResourceLoaderTypes ResourceLoaderType { get; set; }
+
+        public override string Message
+        {
+            get
+            {
+                return $@"{base.Message}.
+ResourceLoader type: {ResourceLoaderType.ToString()}.
+Path: {Path}";
+            }
+        }
     }
 }
