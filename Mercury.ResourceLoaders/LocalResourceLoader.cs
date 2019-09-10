@@ -29,7 +29,7 @@ namespace Mercury.ResourceLoaders
                 throw new ResourceNotFoundException(path, ResourceLoaderTypes.Local);
             }
 
-            using (var fs = new FileStream(root, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var fs = new FileStream(root, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, true))
             using (var sr = new StreamReader(fs))
             {
                 return await sr.ReadToEndAsync();
