@@ -1,76 +1,156 @@
-﻿using System.Threading.Tasks;
-using Mercury.Abstraction.Interfaces;
-using Mercury.Abstraction.Models;
-using Mercury.Core.Settings;
+﻿using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using FluentResults;
+using FluentValidation;
+using Mercury.Core.Abstractions;
+using Mercury.Core.Models;
+using Mercury.Models;
 using Mercury.Utils;
-using Mercury.Validation;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace Mercury.Core
 {
     public class MercuryFacade : IMercuryFacade
     {
-        private readonly IValidator validator;
+        private const string EmailRequestNullFailureMessage = "Email request cannot be null.";
+        private const string EmailRequestInvalidFailureMessage = "Email request is invalid.";
+
+        private readonly IValidator<MercuryRequest> validator;
         private readonly IPathFinder pathFinder;
         private readonly IResourceLoader resourceLoader;
         private readonly ITemplateProcessor templateProcessor;
         private readonly IEmailer emailer;
+        private readonly ILogger logger;
         private readonly MercurySettings settings;
 
         public MercuryFacade(
-            IValidator validator,
+            IValidator<MercuryRequest> validator,
             IPathFinder pathFinder,
             IResourceLoader resourceLoader,
             ITemplateProcessor templateProcessor,
             IEmailer emailer,
-            IOptions<MercurySettings> options)
+            ILogger<MercuryFacade> logger,
+            MercurySettings settings)
         {
             this.resourceLoader = resourceLoader.ThrowIfNull(nameof(resourceLoader));
             this.templateProcessor = templateProcessor.ThrowIfNull(nameof(templateProcessor));
             this.emailer = emailer.ThrowIfNull(nameof(emailer));
             this.pathFinder = pathFinder.ThrowIfNull(nameof(pathFinder));
             this.validator = validator.ThrowIfNull(nameof(validator));
-            settings = options.ThrowIfNull(nameof(options)).Value;
-            settings.ThrowIfNull(nameof(settings));
+            this.logger = logger.ThrowIfNull(nameof(logger));
+            this.settings = settings.ThrowIfNull(nameof(settings));
         }
 
-        public async Task SendAsync(EmailRequest request)
+        public async Task<Result> SendAsync(MercuryRequest request, CancellationToken token)
         {
-            validator.Validate(request);
+            logger.WithScope("@Request", request).LogDebug("Starting to process email request.");
 
-            var body = await GetEmailBodyAsync(request);
-            var metadata = await GetMetadataAsync(request);
+            var validationResult = Validate(request);
+            if (validationResult.IsFailed)
+            {
+                return validationResult;
+            }
 
-            await SendAsync(request, metadata, body);
+            token.ThrowIfCancellationRequested();
+
+            logger.LogDebug("Generating email body.");
+
+            var bodyResult = await GetEmailBodyAsync(request, token).ConfigureAwait(false);
+            if (bodyResult.IsFailed)
+            {
+                return bodyResult;
+            }
+
+            logger.WithScope("Body", bodyResult.Value).LogDebug("Generated email body.");
+
+            token.ThrowIfCancellationRequested();
+
+            logger.LogDebug("Extracting metadata.");
+
+            var metadataResult = await GetMetadataAsync(request, token).ConfigureAwait(false);
+            if (metadataResult.IsFailed)
+            {
+                return metadataResult;
+            }
+
+            logger.WithScope("@Metadata", metadataResult.Value).LogDebug("Extracted metadata.");
+
+            token.ThrowIfCancellationRequested();
+
+            logger.LogDebug("Mapping to message.");
+
+            var message = Map(request, metadataResult.Value, bodyResult.Value);
+
+            logger.WithScope("@Message", message).LogDebug("Mapped to message.");
+
+            token.ThrowIfCancellationRequested();
+
+            logger.LogDebug("Sending email.");
+
+            return await emailer.SendAsync(message, token).ConfigureAwait(false);
         }
 
-        private async Task<string> GetEmailBodyAsync(EmailRequest request)
+        private Result Validate(MercuryRequest request)
+        {
+            if (request == null)
+            {
+                logger.LogError(EmailRequestNullFailureMessage);
+                return Result.Fail(EmailRequestNullFailureMessage);
+            }
+
+            var validationResult = validator.Validate(request);
+
+            if (!validationResult.IsValid)
+            {
+                var errors = validationResult.Errors.Select(x => x.ErrorMessage);
+                logger.WithErrorScope(errors).LogError(EmailRequestInvalidFailureMessage);
+                return Result.Fail(new Error(EmailRequestInvalidFailureMessage).CausedBy(errors));
+            }
+
+            return Result.Ok();
+        }
+
+        private async Task<Result<string>> GetEmailBodyAsync(MercuryRequest request, CancellationToken token)
         {
             var templatePath = pathFinder.GetTemplatePath(request.TemplateKey);
-            var template = await resourceLoader.LoadAsync(templatePath);
-            var emailBody = templateProcessor.Process(template, request.Payload);
 
-            return emailBody;
+            var templateResult = await resourceLoader.LoadAsync(templatePath, token).ConfigureAwait(false);
+            if (templateResult.IsFailed)
+            {
+                return templateResult;
+            }
+
+            token.ThrowIfCancellationRequested();
+
+            var templateProcessingResult = templateProcessor.Process(templateResult.Value, request.Payload);
+            if (templateProcessingResult.IsFailed)
+            {
+                return templateProcessingResult;
+            }
+
+            return Result.Ok(templateProcessingResult.Value);
         }
 
-        private async Task<EmailMetadata> GetMetadataAsync(EmailRequest request)
+        private async Task<Result<EmailMetadata>> GetMetadataAsync(MercuryRequest request, CancellationToken token)
         {
             var metadataPath = pathFinder.GetMetadataPath(request.TemplateKey);
-            var metadata = await resourceLoader.LoadAsync(metadataPath);
-            var metadataObj = JsonConvert.DeserializeObject<EmailMetadata>(metadata);
 
-            return metadataObj;
+            var resourceResult = await resourceLoader.LoadAsync(metadataPath, token).ConfigureAwait(false);
+            if (resourceResult.IsFailed)
+            {
+                return resourceResult.ToResult<EmailMetadata>();
+            }
+
+            token.ThrowIfCancellationRequested();
+
+            var metadataObj = JsonConvert.DeserializeObject<EmailMetadata>(resourceResult.Value);
+
+            return Result.Ok(metadataObj);
         }
 
-        private async Task SendAsync(EmailRequest request, EmailMetadata metadata, string body)
-        {
-            var msg = Map(request, metadata, body);
-
-            await emailer.SendAsync(msg);
-        }
-
-        private EmailMessage Map(EmailRequest request, EmailMetadata metadata, string body)
+        private EmailMessage Map(MercuryRequest request, EmailMetadata metadata, string body)
         {
             return new EmailMessage
             {

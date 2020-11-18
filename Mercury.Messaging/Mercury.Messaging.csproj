@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -19,15 +19,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Storage.Blobs" Version="12.6.0" />
-    <PackageReference Include="DotLiquid" Version="2.0.366" />
-    <PackageReference Include="FluentResults" Version="2.3.0" />
-    <PackageReference Include="FluentValidation" Version="9.2.2" />
-    <PackageReference Include="Handlebars.Net" Version="1.11.5" />
-    <PackageReference Include="MailKit" Version="2.9.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="SendGrid" Version="9.21.1" />
+    <PackageReference Include="RabbitMQ.Client" Version="6.2.1" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

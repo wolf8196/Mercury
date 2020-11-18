@@ -2,7 +2,7 @@
 Mercury - the messenger of the gods - a small and simple service, that takes templates, renders them, and sends emails to provided address(es).
 
 ## Prerequisites
-Rest api uses .Net Core 2.1.
+Api & messaging uses .NET Core 3.1.
 
 Core functionality projects use .Net Standart 2.0.
 
@@ -20,12 +20,12 @@ Service assumes that network is secure.
 Configuration of Rest api is done via appsettings.json file.
 
 Main sections:
-* ServicesConfig.StartupSettings
+* ServiceSettings
 
 Configures which implementation of a particular part of service to use.
 Example:
 ```json
-"ServicesConfig": {
+"ServiceSettings": {
       "ResourceLoader": "Local",
       "TemplateProcessor": "Liquid",
       "Emailer": "Dev"
@@ -35,6 +35,10 @@ Example:
 * MercurySettings
 
 For now configures only global address of email sender.
+
+* RabbitSettings
+
+Configures main properties required to queue messages into RabbitMq.
 
 * Emailer/ResourceLoaderSettings
 
@@ -80,15 +84,14 @@ Currently implemented: Liquid and Handlebars processors.
 
 Sends actual email.
 
-Currently implemented: SendGrid and Dev emailers.
+Currently implemented: SendGrid, Smtp and Mock emailers.
 
-## Rest Api
-Mercury exposes single 'send' endpoint, and additional 'healthcheck' endpoint, that simply returns 200 OK.
+## Api
 ### Send
-Sends email(s) based on provided parameters.
+Sends email immediately.
 * **URL**
 
-  api/send
+  api/v1/send
   
 * **Method**
 
@@ -112,45 +115,174 @@ Sends email(s) based on provided parameters.
    
 * **Success Response**
   * **Code:** 200 OK
+  * **Body:**
+  ```json
+  {
+    "success": true,
+    "status": 200,
+    "errors": []
+  }
+  ```
   
 * **Error Response**
-  * **Code:** 404 NOT FOUND <br />
-    **Reason:** Requested resource was not found
-
-  OR
-
   * **Code:** 400 BAD REQUEST <br />
-    **Reason:** Failure during template processing or request parameter is invalid
+    **Body:**
+    ```json
+    {
+        "success": false,
+        "status": 400,
+        "errors": [
+            {
+                "message": "Error message.",
+                "metadata": {},
+                "reasons": [
+                    {
+                        "message": "Reason message.",
+                        "metadata": {},
+                        "reasons": []
+                    }
+                ]
+            }
+        ]
+    }
+    ```
     
   OR
 
   * **Code:** 500 INTERNAL SERVER ERROR <br />
-    **Reason:** Unexpected exception occured
+    **Body:** Unexpected exception occured
+    ```json
+    {
+        "success": false,
+        "status": 500,
+        "errors": [
+            {
+                "message": "Unhandled error occured.",
+                "metadata": {},
+                "reasons": []
+            }
+        ]
+    }
+    ```
+
+
+
+### Queue
+Publishes email into queue for later processing.
+* **URL**
+
+  api/v1/queue
+  
+* **Method**
+
+  `POST`
+  
+* **Data Params**
+
+  **Required:**
+
+   `tos: [string array]`
+   
+   `templateKey: [string]`
+   
+   `payload`: [object]
+   
+  **Optional:**
+  
+   `ccs: [string array]`
+   
+   `bccs: [string array]`
+   
+* **Success Response**
+  * **Code:** 202 ACCEPTED
+  * **Body:**
+  ```json
+  {
+    "success": true,
+    "status": 202,
+    "errors": []
+  }
+  ```
+  
+* **Error Response**
+  * **Code:** 400 BAD REQUEST <br />
+    **Body:**
+    ```json
+    {
+        "success": false,
+        "status": 400,
+        "errors": [
+            {
+                "message": "Error message.",
+                "metadata": {},
+                "reasons": [
+                    {
+                        "message": "Reason message.",
+                        "metadata": {},
+                        "reasons": []
+                    }
+                ]
+            }
+        ]
+    }
+    ```
+    
+  OR
+
+  * **Code:** 500 INTERNAL SERVER ERROR <br />
+    **Body:** Unexpected exception occured
+    ```json
+    {
+        "success": false,
+        "status": 500,
+        "errors": [
+            {
+                "message": "Unhandled error occured.",
+                "metadata": {},
+                "reasons": []
+            }
+        ]
+    }
+    ```
+
 
 ### Healthcheck
 Returns 200 OK.
 * **URL**
 
-  api/healthcheck
+  api/v1/healthcheck
   
 * **Method**
 
   `GET`
    
 * **Success Response**
-  * **Code:** 200 OK
-  
-* **Error Response**
+  * **Code:** 200 ACCEPTED
+  * **Body:**
+  ```json
+  {
+    "success": true,
+    "status": 200,
+    "errors": []
+  }
+  ```
+
+  * **Error Response**
   * **Code:** 500 INTERNAL SERVER ERROR <br />
-    **Reason:** Unexpected exception occured
-
-## Future Plans
-
-* Add queue consumer(s) (e.g. RabbitMQ);
-* Add caching (resources, templates);
-* Load/performance testing;
-* Add some more resource loaders/emailers/template processors;
-* Add ability to send attachments;
+    **Body:** Unexpected exception occured
+    ```json
+    {
+        "success": false,
+        "status": 500,
+        "errors": [
+            {
+                "message": "Unhandled error occured.",
+                "metadata": {},
+                "reasons": []
+            }
+        ]
+    }
+    ```
     
 ## License
 This project is licensed under the MIT License - see the [LICENSE](https://github.com/wolf8196/Mercury/blob/master/LICENSE) file for details

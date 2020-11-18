@@ -13,5 +13,15 @@ namespace Mercury.Utils
 
             return obj;
         }
+
+        public static string ThrowIfNullOrEmpty(this string str, string paramName)
+        {
+            if (string.IsNullOrEmpty(str))
+            {
+                throw new ArgumentException("String is null or empty.", paramName);
+            }
+
+            return str;
+        }
     }
 }
