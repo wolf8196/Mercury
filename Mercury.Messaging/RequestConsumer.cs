@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,7 +20,7 @@ namespace Mercury.Messaging
         private readonly ILogger logger;
         private readonly RabbitSettings settings;
         private readonly BufferBlock<RequestMessage<TRequest>> messageBuffer;
-        private readonly Dictionary<RequestMessage<TRequest>, ulong> deliveryTags;
+        private readonly ConcurrentDictionary<RequestMessage<TRequest>, ulong> deliveryTags;
 
         private IConnection connection;
         private IModel channel;
@@ -38,7 +38,7 @@ namespace Mercury.Messaging
             this.settings = settings;
 
             messageBuffer = new BufferBlock<RequestMessage<TRequest>>();
-            deliveryTags = new Dictionary<RequestMessage<TRequest>, ulong>();
+            deliveryTags = new ConcurrentDictionary<RequestMessage<TRequest>, ulong>();
         }
 
         public void Start()
@@ -67,7 +67,7 @@ namespace Mercury.Messaging
 
         public void Acknowledge(RequestMessage<TRequest> message)
         {
-            if (deliveryTags.TryGetValue(message, out ulong deliveryTag))
+            if (deliveryTags.TryRemove(message, out ulong deliveryTag))
             {
                 channel.BasicAck(deliveryTag, false);
             }
@@ -75,7 +75,7 @@ namespace Mercury.Messaging
 
         public void Reject(RequestMessage<TRequest> message)
         {
-            if (deliveryTags.TryGetValue(message, out ulong deliveryTag))
+            if (deliveryTags.TryRemove(message, out ulong deliveryTag))
             {
                 channel.BasicReject(deliveryTag, false);
             }
@@ -97,7 +97,7 @@ namespace Mercury.Messaging
                 args.BasicProperties.CorrelationId,
                 args.BasicProperties.MessageId);
 
-            deliveryTags.Add(message, args.DeliveryTag);
+            deliveryTags.TryAdd(message, args.DeliveryTag);
             messageBuffer.Post(message);
         }
     }

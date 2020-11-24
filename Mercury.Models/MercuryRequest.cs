@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
-using System.Dynamic;
 
 namespace Mercury.Models
 {
-    public class MercuryRequest
+    public class MercuryRequest<TPayload>
+        where TPayload : class
     {
         public string TemplateKey { get; set; }
 
@@ -13,6 +13,6 @@ namespace Mercury.Models
 
         public IEnumerable<string> Bccs { get; set; }
 
-        public ExpandoObject Payload { get; set; }
+        public TPayload Payload { get; set; }
     }
 }

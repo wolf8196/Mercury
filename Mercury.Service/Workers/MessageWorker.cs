@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Dynamic;
+using System.Threading;
 using System.Threading.Tasks;
 using Mercury.Core.Abstractions;
 using Mercury.Messaging.Abstractions;
@@ -11,11 +12,11 @@ namespace Mercury.Service.Workers
 {
     public class MessageWorker : BackgroundService
     {
-        private readonly IRequestConsumer<MercuryRequest> consumer;
+        private readonly IRequestConsumer<MercuryRequest<ExpandoObject>> consumer;
         private readonly IMercuryFacade mercuryFacade;
         private readonly ILogger logger;
 
-        public MessageWorker(IRequestConsumer<MercuryRequest> consumer, IMercuryFacade mercuryFacade, ILogger<MessageWorker> logger)
+        public MessageWorker(IRequestConsumer<MercuryRequest<ExpandoObject>> consumer, IMercuryFacade mercuryFacade, ILogger<MessageWorker> logger)
         {
             this.consumer = consumer;
             this.mercuryFacade = mercuryFacade;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Dynamic;
 using FluentValidation;
 using Mercury.Core;
 using Mercury.Core.Abstractions;
@@ -17,7 +18,7 @@ namespace Mercury.Service.Bootstrap
 {
     public static class DependencyExtensions
     {
-        public static IServiceCollection AddMercuryDependencies(
+        public static IServiceCollection AddMercuryCore(
             this IServiceCollection services,
             IConfiguration configuration)
         {
@@ -40,7 +41,7 @@ namespace Mercury.Service.Bootstrap
 
         private static IServiceCollection AddStaticDependencies(this IServiceCollection services)
         {
-            services.AddSingleton<IValidator<MercuryRequest>, MercuryRequestValidator>();
+            services.AddSingleton<IValidator<MercuryRequest<ExpandoObject>>, MercuryRequestValidator>();
             services.AddSingleton<IPathFinder, ConstantPathFinder>();
             services.AddSingleton<IMercuryFacade, MercuryFacade>();
             services.AddTransient<ExceptionHandlingMiddleware>();

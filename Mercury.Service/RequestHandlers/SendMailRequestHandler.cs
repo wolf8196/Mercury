@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Dynamic;
+using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
 using MediatR;
@@ -9,12 +10,12 @@ namespace Mercury.Service.CommandHandlers
 {
     public class SendMailRequest : IRequest<Result>
     {
-        public SendMailRequest(MercuryRequest request)
+        public SendMailRequest(MercuryRequest<ExpandoObject> request)
         {
             Request = request;
         }
 
-        public MercuryRequest Request { get; }
+        public MercuryRequest<ExpandoObject> Request { get; }
     }
 
     public class SendMailRequestHandler : IRequestHandler<SendMailRequest, Result>

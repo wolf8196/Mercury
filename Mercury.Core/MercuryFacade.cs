@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Dynamic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
@@ -17,7 +18,7 @@ namespace Mercury.Core
         private const string EmailRequestNullFailureMessage = "Email request cannot be null.";
         private const string EmailRequestInvalidFailureMessage = "Email request is invalid.";
 
-        private readonly IValidator<MercuryRequest> validator;
+        private readonly IValidator<MercuryRequest<ExpandoObject>> validator;
         private readonly IPathFinder pathFinder;
         private readonly IResourceLoader resourceLoader;
         private readonly ITemplateProcessor templateProcessor;
@@ -26,7 +27,7 @@ namespace Mercury.Core
         private readonly MercurySettings settings;
 
         public MercuryFacade(
-            IValidator<MercuryRequest> validator,
+            IValidator<MercuryRequest<ExpandoObject>> validator,
             IPathFinder pathFinder,
             IResourceLoader resourceLoader,
             ITemplateProcessor templateProcessor,
@@ -43,7 +44,7 @@ namespace Mercury.Core
             this.settings = settings.ThrowIfNull(nameof(settings));
         }
 
-        public async Task<Result> SendAsync(MercuryRequest request, CancellationToken token)
+        public async Task<Result> SendAsync(MercuryRequest<ExpandoObject> request, CancellationToken token)
         {
             logger.WithScope("@Request", request).LogDebug("Starting to process email request.");
 
@@ -92,7 +93,7 @@ namespace Mercury.Core
             return await emailer.SendAsync(message, token).ConfigureAwait(false);
         }
 
-        private Result Validate(MercuryRequest request)
+        private Result Validate(MercuryRequest<ExpandoObject> request)
         {
             if (request == null)
             {
@@ -112,7 +113,7 @@ namespace Mercury.Core
             return Result.Ok();
         }
 
-        private async Task<Result<string>> GetEmailBodyAsync(MercuryRequest request, CancellationToken token)
+        private async Task<Result<string>> GetEmailBodyAsync(MercuryRequest<ExpandoObject> request, CancellationToken token)
         {
             var templatePath = pathFinder.GetTemplatePath(request.TemplateKey);
 
@@ -133,7 +134,7 @@ namespace Mercury.Core
             return Result.Ok(templateProcessingResult.Value);
         }
 
-        private async Task<Result<EmailMetadata>> GetMetadataAsync(MercuryRequest request, CancellationToken token)
+        private async Task<Result<EmailMetadata>> GetMetadataAsync(MercuryRequest<ExpandoObject> request, CancellationToken token)
         {
             var metadataPath = pathFinder.GetMetadataPath(request.TemplateKey);
 
@@ -150,7 +151,7 @@ namespace Mercury.Core
             return Result.Ok(metadataObj);
         }
 
-        private EmailMessage Map(MercuryRequest request, EmailMetadata metadata, string body)
+        private EmailMessage Map(MercuryRequest<ExpandoObject> request, EmailMetadata metadata, string body)
         {
             return new EmailMessage
             {

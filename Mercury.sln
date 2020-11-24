@@ -17,7 +17,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mercury.Models", "Mercury.M
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mercury.Messaging", "Mercury.Messaging\Mercury.Messaging.csproj", "{6B118113-7DFD-4DBC-944B-F69225D107AE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mercury.Utils", "Mercury.Utils\Mercury.Utils.csproj", "{2FF77C7A-DA23-4243-BBE0-D92204FB5DF3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mercury.Utils", "Mercury.Utils\Mercury.Utils.csproj", "{2FF77C7A-DA23-4243-BBE0-D92204FB5DF3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mercury.Client", "Mercury.Client\Mercury.Client.csproj", "{B917EE52-BA1F-487A-894C-5FEE2137BC51}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{2FF77C7A-DA23-4243-BBE0-D92204FB5DF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2FF77C7A-DA23-4243-BBE0-D92204FB5DF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2FF77C7A-DA23-4243-BBE0-D92204FB5DF3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B917EE52-BA1F-487A-894C-5FEE2137BC51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B917EE52-BA1F-487A-894C-5FEE2137BC51}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B917EE52-BA1F-487A-894C-5FEE2137BC51}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B917EE52-BA1F-487A-894C-5FEE2137BC51}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Dynamic;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentResults;
@@ -14,22 +15,22 @@ namespace Mercury.Service.CommandHandlers
 {
     public class QueueMailRequest : IRequest<Result>
     {
-        public QueueMailRequest(MercuryRequest request)
+        public QueueMailRequest(MercuryRequest<ExpandoObject> request)
         {
             Request = request;
         }
 
-        public MercuryRequest Request { get; }
+        public MercuryRequest<ExpandoObject> Request { get; }
     }
 
     public class QueueMailRequestHandler : IRequestHandler<QueueMailRequest, Result>
     {
         private const string PublishFailureMessage = "Failed to queue email request.";
 
-        private readonly IRequestPublisher<MercuryRequest> publisher;
+        private readonly IRequestPublisher<MercuryRequest<ExpandoObject>> publisher;
         private readonly ILogger logger;
 
-        public QueueMailRequestHandler(IRequestPublisher<MercuryRequest> publisher, ILogger<QueueMailRequestHandler> logger)
+        public QueueMailRequestHandler(IRequestPublisher<MercuryRequest<ExpandoObject>> publisher, ILogger<QueueMailRequestHandler> logger)
         {
             this.publisher = publisher;
             this.logger = logger;
@@ -37,7 +38,11 @@ namespace Mercury.Service.CommandHandlers
 
         public Task<Result> Handle(QueueMailRequest request, CancellationToken cancellationToken)
         {
-            var requestMessage = new RequestMessage<MercuryRequest>(request.Request, DateTimeOffset.UtcNow, Activity.Current.TraceId.ToString());
+            var requestMessage = new RequestMessage<MercuryRequest<ExpandoObject>>(
+                request.Request,
+                DateTimeOffset.UtcNow,
+                Activity.Current.TraceId.ToString());
+
             var requestLogger = logger
                 .WithScope("@Request", request)
                 .WithScope("MessageId", requestMessage.Id);

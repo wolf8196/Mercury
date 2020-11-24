@@ -27,7 +27,7 @@ namespace Mercury.Service
             services
                 .AddApiVersioning()
                 .AddMediatR(typeof(Startup).GetTypeInfo().Assembly)
-                .AddMercuryDependencies(configuration)
+                .AddMercuryCore(configuration)
                 .AddMercuryMessaging(config =>
                 {
                     configuration.GetSection(nameof(ServiceSettings)).GetSection(nameof(RabbitSettings)).Bind(config);

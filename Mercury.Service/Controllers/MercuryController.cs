@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Dynamic;
+using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Mercury.Models;
@@ -26,7 +27,7 @@ namespace Mercury.Service.Controllers
         }
 
         [HttpPost("send")]
-        public async Task<IActionResult> SendMailAsync([FromBody] MercuryRequest request, CancellationToken token)
+        public async Task<IActionResult> SendMailAsync([FromBody] MercuryRequest<ExpandoObject> request, CancellationToken token)
         {
             var sendResult = await mediator.Send(new SendMailRequest(request), token).ConfigureAwait(false);
 
@@ -39,7 +40,7 @@ namespace Mercury.Service.Controllers
         }
 
         [HttpPost("queue")]
-        public async Task<IActionResult> QueueMailAsync([FromBody] MercuryRequest request, CancellationToken token)
+        public async Task<IActionResult> QueueMailAsync([FromBody] MercuryRequest<ExpandoObject> request, CancellationToken token)
         {
             var sendResult = await mediator.Send(new QueueMailRequest(request), token).ConfigureAwait(false);
 

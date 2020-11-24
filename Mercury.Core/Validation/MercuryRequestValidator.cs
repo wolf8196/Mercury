@@ -1,9 +1,10 @@
-﻿using FluentValidation;
+﻿using System.Dynamic;
+using FluentValidation;
 using Mercury.Models;
 
 namespace Mercury.Core.Validation
 {
-    public class MercuryRequestValidator : AbstractValidator<MercuryRequest>
+    public class MercuryRequestValidator : AbstractValidator<MercuryRequest<ExpandoObject>>
     {
         public MercuryRequestValidator()
         {

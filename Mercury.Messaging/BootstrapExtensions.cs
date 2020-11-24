@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Dynamic;
 using Mercury.Messaging.Abstractions;
 using Mercury.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,8 +29,8 @@ namespace Mercury.Messaging
                 };
             });
             services.AddSingleton<IStructureInitializer, StructureInitializer>();
-            services.AddSingleton<IRequestPublisher<MercuryRequest>, RequestPublisher<MercuryRequest>>();
-            services.AddSingleton<IRequestConsumer<MercuryRequest>, RequestConsumer<MercuryRequest>>();
+            services.AddSingleton<IRequestPublisher<MercuryRequest<ExpandoObject>>, RequestPublisher<MercuryRequest<ExpandoObject>>>();
+            services.AddSingleton<IRequestConsumer<MercuryRequest<ExpandoObject>>, RequestConsumer<MercuryRequest<ExpandoObject>>>();
 
             return services;
         }
