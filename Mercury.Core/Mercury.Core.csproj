@@ -19,7 +19,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Storage.Blobs" Version="12.7.0" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.13.0" />
     <PackageReference Include="DotLiquid" Version="2.0.366" />
     <PackageReference Include="FluentResults" Version="2.3.0" />
     <PackageReference Include="FluentValidation" Version="9.3.0" />
